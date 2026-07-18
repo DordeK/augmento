@@ -44,6 +44,7 @@ npx expo-doctor
 Requirements:
 
 - Python 3.12
+- FFmpeg
 
 Install and start:
 
@@ -58,6 +59,39 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 The API documentation is available at `http://localhost:8000/docs`, and the health check is
 available at `http://localhost:8000/health`.
 
+FFmpeg and FFprobe perform media analysis and audio/video mixing. On macOS, install them with:
+
+```bash
+brew install ffmpeg
+```
+
+The backend Docker image installs FFmpeg automatically.
+
+Put the fixed promotion recording at `backend/assets/promotion.wav` (see the README in that
+directory), then send one multipart video:
+
+```bash
+curl --fail-with-body \
+  -F "video=@/absolute/path/to/input.mp4" \
+  -D headers.txt \
+  --output augmented.mp4 \
+  http://localhost:8000/augment
+```
+
+The response is an MP4 with AAC audio. Its `X-Augmento-Insertion-Seconds` header contains the
+chosen promotion start time. Override the fixed asset with `AUGMENTO_PROMOTION_AUDIO_PATH`.
+
+The mobile app calls this endpoint when **Create augmented video** is pressed. During local Expo
+development it derives the computer's LAN address from the Expo development host. If that address
+is not suitable for your simulator or device, start Expo with an explicit backend URL:
+
+```bash
+EXPO_PUBLIC_API_URL=http://YOUR_COMPUTER_LAN_IP:8000 npm start
+```
+
+Run Uvicorn with `--host 0.0.0.0`, and keep the phone and computer on the same network. The result
+screen plays the returned MP4 and can share it or save it to the device photo library.
+
 Backend checks:
 
 ```bash
@@ -66,8 +100,10 @@ cd backend
 .venv/bin/pytest
 ```
 
-## Current scope
+## Current scope and limitations
 
-The repository contains the frontend and backend foundations. Media ingestion and processing,
-database integration, authentication, and deployment configuration will be added only when the
-product workflow requires them.
+Promotion placement is a hackathon quietness heuristic: it prefers FFmpeg-detected silence and
+otherwise compares rolling loudness windows. It cannot reliably distinguish speech from music,
+and short videos without room for the promotion plus edge/buffer margins are rejected. Processing
+is synchronous and intended for short uploads; it has no authentication, persistence, database,
+queue, transcription, VAD, product matching, or frontend API wiring.

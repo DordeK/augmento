@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -13,6 +14,9 @@ class Settings(BaseSettings):
     app_name: str = "Augmento API"
     environment: str = "development"
     cors_origins: list[str] = ["*"]
+    promotion_audio_path: Path = Path(__file__).resolve().parents[2] / "assets" / "promotion.wav"
+    media_timeout_seconds: float = 120.0
+    max_upload_bytes: int = 250 * 1024 * 1024
 
 
 @lru_cache

@@ -37,7 +37,17 @@
       "expo-video",
       "expo-audio",
       "expo-sqlite",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Augmento to access your videos.",
+          "savePhotosPermission": "Allow Augmento to save augmented videos.",
+          "granularPermissions": [
+            "video"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

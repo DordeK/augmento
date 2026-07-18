@@ -40,6 +40,10 @@ yarn-error.*
 .env
 .env*.local
 
+# local media inputs and generated test outputs
+/augmento-test-*.mp4
+/backend/assets/promotion.wav
+
 # Python backend
 backend/.venv/
 *.egg-info/
