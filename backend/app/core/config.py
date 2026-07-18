@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     app_name: str = "Augmento API"
     environment: str = "development"
     cors_origins: list[str] = ["*"]
-    promotion_audio_path: Path = Path(__file__).resolve().parents[2] / "assets" / "promotion.wav"
+    promotion_audio_path: Path = Path(__file__).resolve().parents[2] / "assets" / "promotion.mpeg"
     media_timeout_seconds: float = 120.0
     max_upload_bytes: int = 250 * 1024 * 1024
 

@@ -73,7 +73,7 @@ brew install ffmpeg
 
 The backend Docker image installs FFmpeg automatically.
 
-Put the fixed promotion recording at `backend/assets/promotion.wav` (see the README in that
+Put the fixed promotion recording at `backend/assets/promotion.mpeg` (see the README in that
 directory), then send one multipart video:
 
 ```bash
@@ -95,6 +95,15 @@ is not suitable for your simulator or device, start Expo with an explicit backen
 EXPO_PUBLIC_API_URL=http://YOUR_COMPUTER_LAN_IP:8000 npm start
 ```
 
+After completing the frontend and backend setup once, start both development servers together:
+
+```bash
+npm run dev
+```
+
+Pass any Expo options after `--`, for example `npm run dev -- --tunnel`. Press Ctrl+C to stop both
+servers.
+
 Run Uvicorn with `--host 0.0.0.0`, and keep the phone and computer on the same network. The result
 screen plays the returned MP4 and can share it or save it to the device photo library.
 
@@ -112,4 +121,8 @@ Promotion placement is a hackathon quietness heuristic: it prefers FFmpeg-detect
 otherwise compares rolling loudness windows. It cannot reliably distinguish speech from music,
 and short videos without room for the promotion plus edge/buffer margins are rejected. Processing
 is synchronous and intended for short uploads; it has no authentication, persistence, database,
-queue, transcription, VAD, product matching, or frontend API wiring.
+queue, transcription, VAD, or real product matching.
+
+Advertiser matching and phrase generation are intentionally mocked for the MVP. The demo path
+selects Coca-Cola and the matching football phrase before the backend injects the fixed recording
+from `promotion.mpeg`.

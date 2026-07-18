@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { File } from 'expo-file-system';
+import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
@@ -20,9 +21,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {
-  DEMO_PRODUCTS,
-} from '@/data/demo-content';
+import { DEMO_PRODUCTS, type DemoProduct } from '@/data/demo-content';
 import { AUGMENTO_API_URL, augmentVideo } from '@/lib/augment-api';
 
 type WizardStep = 0 | 1 | 2 | 3;
@@ -45,7 +44,7 @@ function formatTimestamp(seconds?: number | null) {
   return `${minutes}:${remainder.toString().padStart(2, '0')}`;
 }
 
-function VideoPreview({ uri, compact = false }: { uri: string; compact?: boolean }) {
+function VideoPreview({ uri }: { uri: string }) {
   const player = useVideoPlayer(uri);
 
   return (
@@ -53,12 +52,38 @@ function VideoPreview({ uri, compact = false }: { uri: string; compact?: boolean
       contentFit="cover"
       nativeControls
       player={player}
-      style={[styles.video, compact && styles.videoCompact]}
+      style={styles.video}
     />
   );
 }
 
-function ProgressHeader({ step, onBack }: { step: WizardStep; onBack: () => void }) {
+function BrandLogo({ product }: { product: DemoProduct }) {
+  return (
+    <View style={[styles.productLogo, { backgroundColor: `${product.accent}14` }]}>
+      <Image
+        accessibilityLabel={`${product.name} logo`}
+        contentFit="contain"
+        source={product.logoSource}
+        style={[
+          styles.productLogoImage,
+          product.logoLayout === 'nike' && styles.productLogoNike,
+          product.logoLayout === 'wide' && styles.productLogoWide,
+          product.logoLayout === 'square' && styles.productLogoSquare,
+        ]}
+      />
+    </View>
+  );
+}
+
+function ProgressHeader({
+  step,
+  animatedStep,
+  onBack,
+}: {
+  step: WizardStep;
+  animatedStep: Animated.Value;
+  onBack: () => void;
+}) {
   return (
     <View style={styles.header}>
       <View style={styles.brandRow}>
@@ -79,14 +104,45 @@ function ProgressHeader({ step, onBack }: { step: WizardStep; onBack: () => void
       </View>
 
       <View style={styles.progressTrack}>
-        {STEP_LABELS.map((label, index) => (
-          <View key={label} style={styles.progressItem}>
-            <View style={[styles.progressBar, index <= step && styles.progressBarActive]} />
-            <Text style={[styles.progressLabel, index === step && styles.progressLabelActive]}>
-              {label}
-            </Text>
-          </View>
-        ))}
+        {STEP_LABELS.map((label, index) => {
+          const completion = animatedStep.interpolate({
+            inputRange: [index - 0.45, index],
+            outputRange: [0, 1],
+            extrapolate: 'clamp',
+          });
+          const focusOpacity = animatedStep.interpolate({
+            inputRange: [index - 1, index, index + 1],
+            outputRange: [0.7, 1, 0.7],
+            extrapolate: 'clamp',
+          });
+          const focusScale = animatedStep.interpolate({
+            inputRange: [index - 1, index, index + 1],
+            outputRange: [0.96, 1, 0.96],
+            extrapolate: 'clamp',
+          });
+
+          return (
+            <View key={label} style={styles.progressItem}>
+              <View style={styles.progressBar}>
+                <Animated.View
+                  style={[
+                    styles.progressBarActive,
+                    { opacity: completion, transform: [{ scaleX: completion }] },
+                  ]}
+                />
+              </View>
+              <Animated.Text
+                style={[
+                  styles.progressLabel,
+                  index === step && styles.progressLabelActive,
+                  { opacity: focusOpacity, transform: [{ scale: focusScale }] },
+                ]}
+              >
+                {label}
+              </Animated.Text>
+            </View>
+          );
+        })}
       </View>
     </View>
   );
@@ -127,6 +183,7 @@ export default function HomeScreen() {
   const isTransitioning = useRef(false);
   const contentOpacity = useRef(new Animated.Value(1)).current;
   const contentTranslateX = useRef(new Animated.Value(0)).current;
+  const animatedStep = useRef(new Animated.Value(0)).current;
 
   const selectedProduct = useMemo(
     () => DEMO_PRODUCTS.find((product) => product.id === selectedProductId) ?? DEMO_PRODUCTS[0],
@@ -153,6 +210,12 @@ export default function HomeScreen() {
       Animated.timing(contentOpacity, {
         toValue: 1,
         duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.spring(animatedStep, {
+        toValue: step,
+        speed: 24,
+        bounciness: 0,
         useNativeDriver: true,
       }),
     ]).start();
@@ -207,6 +270,12 @@ export default function HomeScreen() {
           toValue: 1,
           duration: 180,
           easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.spring(animatedStep, {
+          toValue: nextStep,
+          speed: 20,
+          bounciness: 4,
           useNativeDriver: true,
         }),
       ]).start(() => {
@@ -361,6 +430,11 @@ export default function HomeScreen() {
     const dragPosition = Math.max(-26, Math.min(26, horizontalDistance * 0.18));
     contentTranslateX.setValue(dragPosition);
     contentOpacity.setValue(1 - Math.min(Math.abs(horizontalDistance) / 900, 0.08));
+    const stepPreview = Math.min(
+      3,
+      Math.max(0, step - Math.max(-1, Math.min(1, horizontalDistance / 180)))
+    );
+    animatedStep.setValue(stepPreview);
   };
 
   const handleTouchEnd = (event: GestureResponderEvent) => {
@@ -404,7 +478,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ProgressHeader onBack={goBack} step={step} />
+      <ProgressHeader animatedStep={animatedStep} onBack={goBack} step={step} />
 
       <Animated.View
         style={[
@@ -437,7 +511,7 @@ export default function HomeScreen() {
 
             {video ? (
               <View style={styles.selectedVideoCard}>
-                <VideoPreview compact uri={video.uri} />
+                <VideoPreview uri={video.uri} />
                 <View style={styles.fileInfo}>
                   <View style={styles.fileIcon}>
                     <Ionicons color="#10A37F" name="videocam-outline" size={20} />
@@ -482,7 +556,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.cardList}>
-              {DEMO_PRODUCTS.map((product, index) => {
+              {DEMO_PRODUCTS.map((product) => {
                 const selected = product.id === selectedProductId;
                 return (
                   <Pressable
@@ -498,13 +572,11 @@ export default function HomeScreen() {
                     ]}
                   >
                     <View style={styles.productTopRow}>
-                      <View style={[styles.productLogo, { backgroundColor: `${product.accent}20` }]}>
-                        <Text style={[styles.productSymbol, { color: product.accent }]}>{product.symbol}</Text>
-                      </View>
+                      <BrandLogo product={product} />
                       <View style={styles.productIdentity}>
                         <View style={styles.nameRow}>
                           <Text style={styles.productName}>{product.name}</Text>
-                          {index === 0 && (
+                          {product.id === 'coca-cola' && (
                             <View style={styles.bestBadge}>
                               <Ionicons color="#0B5D4A" name="sparkles" size={10} />
                               <Text style={styles.bestBadgeText}>BEST MATCH</Text>
@@ -624,11 +696,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.summaryCard}>
-              <View style={[styles.productLogo, { backgroundColor: `${selectedProduct.accent}20` }]}>
-                <Text style={[styles.productSymbol, { color: selectedProduct.accent }]}>
-                  {selectedProduct.symbol}
-                </Text>
-              </View>
+              <BrandLogo product={selectedProduct} />
               <View style={styles.summaryContent}>
                 <Text style={styles.summaryProduct}>{selectedProduct.name}</Text>
                 <Text style={styles.summaryPhrase}>
@@ -720,11 +788,26 @@ const styles = StyleSheet.create({
   brand: { color: '#111111', fontSize: 16, fontWeight: '600', letterSpacing: -0.3 },
   stepCount: { width: 36, color: '#8A8A85', fontSize: 12, fontWeight: '500', textAlign: 'right' },
   progressTrack: { flexDirection: 'row', gap: 5, marginTop: 10 },
-  progressItem: { flex: 1, gap: 6 },
-  progressBar: { height: 2, borderRadius: 1, backgroundColor: '#DEDEDA' },
-  progressBarActive: { backgroundColor: '#10A37F' },
-  progressLabel: { color: '#9A9A95', fontSize: 9, fontWeight: '500', textAlign: 'center' },
-  progressLabelActive: { color: '#111111' },
+  progressItem: { flex: 1, gap: 7 },
+  progressBar: {
+    height: 3,
+    overflow: 'hidden',
+    borderRadius: 2,
+    backgroundColor: '#DEDEDA',
+  },
+  progressBarActive: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 2,
+    backgroundColor: '#10A37F',
+  },
+  progressLabel: {
+    color: '#858580',
+    fontSize: 11,
+    fontWeight: '600',
+    lineHeight: 15,
+    textAlign: 'center',
+  },
+  progressLabelActive: { color: '#111111', fontWeight: '700' },
   scrollContent: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 28, paddingBottom: 36 },
   screen: { flex: 1, gap: 22 },
   kicker: { marginBottom: 8, color: '#6F6F6B', fontSize: 10, fontWeight: '600', letterSpacing: 1.2 },
@@ -762,15 +845,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   video: {
-    width: '74%',
-    maxWidth: 270,
+    width: '100%',
     aspectRatio: 9 / 16,
-    alignSelf: 'center',
-    marginTop: 16,
-    borderRadius: 12,
     backgroundColor: '#111111',
   },
-  videoCompact: { width: '64%', maxWidth: 235 },
   fileInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
   fileIcon: {
     width: 38,
@@ -806,8 +884,18 @@ const styles = StyleSheet.create({
   },
   selectableCardActive: { borderColor: '#10A37F', backgroundColor: '#F6FBF9' },
   productTopRow: { flexDirection: 'row', alignItems: 'center' },
-  productLogo: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 10 },
-  productSymbol: { fontSize: 19, fontWeight: '700' },
+  productLogo: {
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  productLogoImage: { position: 'absolute' },
+  productLogoNike: { width: 82, height: 46 },
+  productLogoWide: { width: 38, height: 20 },
+  productLogoSquare: { width: 33, height: 33 },
   productIdentity: { flex: 1, marginLeft: 12 },
   nameRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 7 },
   productName: { color: '#111111', fontSize: 15, fontWeight: '600' },

@@ -52,6 +52,7 @@
     "typescript": "~5.9.2"
   },
   "scripts": {
+    "dev": "bash scripts/start-dev.sh",
     "start": "NODE_EXTRA_CA_CERTS=/etc/ssl/cert.pem expo start",
     "android": "NODE_EXTRA_CA_CERTS=/etc/ssl/cert.pem expo start --android",
     "ios": "NODE_EXTRA_CA_CERTS=/etc/ssl/cert.pem expo start --ios",

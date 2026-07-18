@@ -21,7 +21,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 Open `http://localhost:8000/docs` for the generated API documentation or
 `http://localhost:8000/health` for the health check.
 
-Place the promotion recording at `assets/promotion.wav`, then call:
+Place the promotion recording at `assets/promotion.mpeg`, then call:
 
 ```bash
 curl -F "video=@/absolute/path/to/input.mp4" -o augmented.mp4 http://localhost:8000/augment
