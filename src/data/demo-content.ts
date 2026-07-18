@@ -6,56 +6,58 @@ export type DemoProduct = {
   match: number;
   matchReason: string;
   accent: string;
-  symbol: string;
+  logoSource: number;
+  logoLayout: 'nike' | 'wide' | 'square';
   phrases: string[];
 };
 
 export const DEMO_PRODUCTS: DemoProduct[] = [
   {
-    id: 'flow-water',
-    name: 'Flow Water',
-    category: 'Hydration',
-    description: 'Mineral water made for active, everyday routines.',
-    match: 96,
-    matchReason: 'Fits the energetic, wellness-focused tone of your video.',
-    accent: '#10A37F',
-    symbol: 'F',
+    id: 'nike',
+    name: 'Nike',
+    category: 'Sportswear',
+    description: 'Performance gear made for athletes, fans, and everyday movement.',
+    match: 94,
+    matchReason: 'A strong match for energetic sports and lifestyle content.',
+    accent: '#111111',
+    logoSource: require('../../assets/brands/nike.jpg'),
+    logoLayout: 'nike',
     phrases: [
-      'Quick pause — I’m recharging with Flow Water before we keep going.',
-      'Today’s session is powered by Flow Water, my easy hydration reset.',
-      'Before the next part, grab a Flow Water and stay in the flow with me.',
+      'Every big moment starts with the courage to take the first step. Just do it with Nike.',
+      'Train harder, play braver, and bring your best with Nike.',
+      'From the first whistle to the final push, Nike is made for the moment.',
     ],
   },
   {
-    id: 'pulse-audio',
-    name: 'Pulse Audio',
-    category: 'Tech',
-    description: 'Wireless earbuds tuned for movement and deep focus.',
-    match: 91,
-    matchReason: 'Your fast-paced edit strongly overlaps with active listeners.',
-    accent: '#4F4F4B',
-    symbol: 'P',
+    id: 'coca-cola',
+    name: 'Coca-Cola',
+    category: 'Beverages',
+    description: 'The iconic match-day refreshment for fans everywhere.',
+    match: 98,
+    matchReason: 'A natural fit for football fans choosing a side for the biggest match.',
+    accent: '#F40009',
+    logoSource: require('../../assets/brands/coca-cola.png'),
+    logoLayout: 'wide',
     phrases: [
-      'I’m keeping the energy up today with Pulse Audio in my ears.',
-      'This part hits different with Pulse Audio — crisp sound, zero distractions.',
-      'A quick shoutout to Pulse Audio for keeping every session in rhythm.',
+      'Big match, big rivalry—make it even better with an ice-cold Coca-Cola.',
+      "Argentina or Spain? Pick your champion—but don't forget the real MVP: an ice-cold Coca-Cola. Cheers to the beautiful game!",
+      'Whatever side you choose, bring everyone together over an ice-cold Coca-Cola.',
     ],
   },
   {
-    id: 'noura-bites',
-    name: 'Noura Bites',
-    category: 'Nutrition',
-    description: 'Simple protein snacks for busy days and bigger goals.',
-    match: 87,
-    matchReason: 'A natural fit for viewers interested in healthy daily habits.',
-    accent: '#8A8A85',
-    symbol: 'N',
+    id: 'spotify',
+    name: 'Spotify',
+    category: 'Music & Audio',
+    description: 'Music, podcasts, and playlists for every mood and moment.',
+    match: 90,
+    matchReason: 'Fits naturally into creator content with a strong soundtrack and rhythm.',
+    accent: '#1DB954',
+    logoSource: require('../../assets/brands/spotify.png'),
+    logoLayout: 'square',
     phrases: [
-      'Tiny break, big energy — I’ve got a pack of Noura Bites with me.',
-      'Noura Bites are my simple way to stay fueled between busy moments.',
-      'Before we continue, here’s the snack keeping me going: Noura Bites.',
+      'Every match deserves the right soundtrack. Find yours on Spotify.',
+      'Keep the energy going with the perfect game-day playlist on Spotify.',
+      'Whatever your team, there is a Spotify playlist ready for the moment.',
     ],
   },
 ];
-
-export const SUGGESTED_INSERTION = '00:18';
